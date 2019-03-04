@@ -23,8 +23,37 @@ app.post("/product", function(request, response) {
     });
 });
 
+app.post("/wishlist", function(req, res) {
+    var wishList = new WishList();
+    wishList.title = req.body.title;
+    
+    wishList.save(function(err, savedWishList) {
+        if (err) {
+            res.status(500).send({error: "Could not create new wishlist"});
+        } else {
+            res.send(savedWishList);
+        }
+    });
+});
+
+app.put("/wishlist/product/add", function(req, res) {
+    Product.findOne({_id: req.body.productId}, function(err, product) {
+        if (err) {
+            res.status(500).send({error: "Could not add item to wishlist"});
+        } else {
+            WishList.update({_id: req.body.wishListId}, {$addToSet: {products: product._id}}, function(err, wishList) {
+                if (err) {
+                    res.status(500).send({error: "Could not add item to wishlist"});
+                } else {
+                    res.send(wishList);
+                }
+            });
+        }
+    });
+});
+
 app.get("/", function(req, res) {
-    res.send("Please visit /product or /wishlist to list the items of the corresponsing databases.");
+    res.send("Please visit /product or /wishlist to list the items of the corresponsing databases. You may visit /wishlist/product/add to add items to existing wishlists. For this you need the product and wishlist IDs presented in /product and /wishlist pages.");
 });
 
 app.get("/product", function(request, response) {
@@ -38,9 +67,9 @@ app.get("/product", function(request, response) {
 });
 
 app.get("/wishlist", function(req, res) {
-    WishList.find({}, function(err, wishLists) {
+    WishList.find({}).populate({path: "products", model: "Product"}).exec(function(err, wishLists) {
         if (err) {
-           response.status(500).send({error: "Could not fetch wishlists"});
+            res.status(500).send({error: "Could not fetch wishlists"});
         } else {
             res.send(wishLists);
         }
