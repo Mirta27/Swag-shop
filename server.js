@@ -23,6 +23,30 @@ app.post("/product", function(request, response) {
     });
 });
 
+app.get("/", function(req, res) {
+    res.send("Please visit /product or /wishlist to list the items of the corresponsing databases.");
+});
+
+app.get("/product", function(request, response) {
+    Product.find({}, function(err, products) {
+        if (err) {
+            response.status(500).send({error: "Could not fetch products"});
+        } else {
+            response.send(products);
+        }
+    });
+});
+
+app.get("/wishlist", function(req, res) {
+    WishList.find({}, function(err, wishLists) {
+        if (err) {
+           response.status(500).send({error: "Could not fetch wishlists"});
+        } else {
+            res.send(wishLists);
+        }
+    });
+});
+
 app.listen(3000, function() {
     console.log("Swag Shop API running on port 3000...");
 });
